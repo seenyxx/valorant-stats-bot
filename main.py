@@ -4,6 +4,7 @@ from yaml import load as load_yaml, Loader
 from math import floor
 from re import search
 from random import randint
+from datetime import datetime
 import api
 
 def load_config():
@@ -20,7 +21,7 @@ def add_act(act_name, data, embed: Embed):
 
 def positive_or_negative(num):
     if (num < 0):
-        return '-'
+        return ''
     else:
         return '+'
 
@@ -30,6 +31,41 @@ def random_display_for_bundle():
         return 'displayIcon'
     else:
         return 'displayIcon2'
+
+def calculate_game_acs(score, rounds):
+    return score / rounds
+
+def won_or_lose_game(player, blue):
+    team = player['team'].lower()
+
+    if (blue['has_won'] and team == 'blue'):
+        return True
+    elif (not blue['has_won'] and team == 'red'):
+        return True
+    else:
+        return False
+
+def format_rounds_win_lose(player_team):
+    return '{}-{}'.format(player_team['rounds_won'], player_team['rounds_lost'])
+
+def format_win_lose(result):
+    if (result):
+        return 'Win'
+    else:
+        return 'Lose'
+
+def format_game_kda(kills, deaths, assists):
+    return '{} / {} / {}'.format(kills, deaths, assists)
+
+
+def add_game(game_data, embed: Embed, rr_change):
+    player = game_data['player']
+    player_team = player['team'].lower()
+    player_stats = player['stats']
+    embed.add_field(
+        name='**{} | {} | {} | {}**'.format(player['character'], game_data['map'], format_win_lose(won_or_lose_game(player, game_data['blue'])), '{}{}'.format(positive_or_negative(rr_change), rr_change)), 
+        value='```yml\nScore: {}\nACS: {:.0f}\nKDA: {}\nAvg Damage/Round: {:.0f}\nRounds: {}\nStart: {}```'.format(format_rounds_win_lose(game_data[player_team]), calculate_game_acs(player_stats['score'], game_data['rounds_played']), format_game_kda(player_stats['kills'], player_stats['deaths'], player_stats['assists']), player['damage_made'] / game_data['rounds_played'], game_data['rounds_played'], game_data['game_start_patched'])
+    )
 
 valorant_name_regex = '^.+#.+$'
 
@@ -84,7 +120,7 @@ async def mmr(ctx, *args):
     mmr_data = mmr['data']
     seasons = mmr_data['by_season']
 
-    profile_embed = Embed(title='Rank history for: **{}#{}**'.format(name_tag[0], name_tag[1]), color=0xF24D4E)
+    profile_embed = Embed(title='Rank History for: **{}#{}**'.format(name_tag[0], name_tag[1]), color=0xF24D4E)
     
     profile_embed.set_author(name='{}#{}'.format(profile_data['name'], profile_data['tag']), icon_url=profile_card['small'])
 
@@ -93,6 +129,43 @@ async def mmr(ctx, *args):
     
     await ctx.send(embed=profile_embed)
 
+@commands.cooldown(1, 20, commands.BucketType.user)
+@bot.command('competitive')
+async def comp_match_history(ctx, *args):
+    profile_text = ' '.join(args)
+    await ctx.reply('Fetching Competitive data for `{}` ...'.format(profile_text))
+
+    if (not search(valorant_name_regex, profile_text)):
+        return await ctx.reply('The valorant profile must be in the format `name#tag`')
+
+    name_tag = profile_text.split('#')
+    profile = api.get_profile(name_tag[0], name_tag[1])
+
+    if (not profile):
+        return await ctx.reply('An error has occurred.')
+    
+    profile_data = profile['data']
+    profile_card = profile_data['card']
+
+    rr_changes = api.get_rr_changes(profile_data['region'], profile_data['name'], profile_data['tag'])
+
+    if (not rr_changes):
+        return await ctx.reply('An error has occurred.')
+    
+    match_history = api.get_match_history(profile_data['region'], profile_data['name'], profile_data['tag'], profile_data['puuid'], 'competitive')
+
+    comp_embed = Embed(title='Competitive History for: **{}#{}**'.format(name_tag[0], name_tag[1]), color=0x42f5b0)
+    comp_embed.set_author(name='{}#{}'.format(profile_data['name'], profile_data['tag']), icon_url=profile_card['small'])
+
+    i = 0
+    for match in match_history:
+        if (len(rr_changes) - 1 < i):
+            break
+
+        add_game(match, comp_embed, rr_changes[i])
+        i += 1
+    
+    await ctx.send(embed=comp_embed)
 
 @commands.cooldown(1, 20, commands.BucketType.user)
 @bot.command()
@@ -131,7 +204,7 @@ async def profile(ctx, *args):
     add_empty_field(profile_embed)
     profile_embed.add_field(name='Current Rank', value='**```yml\n{}```**'.format(current_rank), inline=True)
     profile_embed.add_field(name='Current RR', value='```yml\n{}```'.format(current_rating), inline=True)
-    profile_embed.add_field(name='Latest Game', value='```diff\n{} {}```'.format(positive_or_negative(last_game_rating_change), last_game_rating_change), inline=True)   
+    profile_embed.add_field(name='Latest Game', value='```diff\n{}{}```'.format(positive_or_negative(last_game_rating_change), last_game_rating_change), inline=True)   
 
     i = 0
     for key in seasons:
@@ -143,11 +216,12 @@ async def profile(ctx, *args):
     await ctx.send(embed=profile_embed)
 
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
-        await ctx.send(embed=embed)
+# @bot.event
+# async def on_command_error(ctx, error):
+#     print(error)
+#     if isinstance(error, commands.CommandOnCooldown):
+#         embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
+#         await ctx.send(embed=embed)
 
 @bot.event
 async def on_ready():
