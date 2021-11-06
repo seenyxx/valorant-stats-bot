@@ -63,7 +63,8 @@ def add_game(game_data, embed: Embed, rr_change):
     player_stats = player['stats']
     embed.add_field(
         name='**{} | {} | {} | {}**'.format(player['character'], game_data['map'], format_win_lose(won_or_lose_game(player, game_data['blue'])), '{}{}'.format(positive_or_negative(rr_change), rr_change)), 
-        value='```yml\nScore: {}\nACS: {:.0f}\nKDA: {}\nAvg Damage/Round: {:.0f}\nRounds: {}\nStart: {}```'.format(format_rounds_win_lose(game_data[player_team]), calculate_game_acs(player_stats['score'], game_data['rounds_played']), format_game_kda(player_stats['kills'], player_stats['deaths'], player_stats['assists']), player['damage_made'] / game_data['rounds_played'], game_data['rounds_played'], game_data['game_start_patched'])
+        value='```yml\nScore: {}\nACS: {:.0f}\nKDA: {}\nAvg Damage/Round: {:.0f}\nRounds: {}\nStart: {}```'.format(format_rounds_win_lose(game_data[player_team]), calculate_game_acs(player_stats['score'], game_data['rounds_played']), format_game_kda(player_stats['kills'], player_stats['deaths'], player_stats['assists']), player['damage_made'] / game_data['rounds_played'], game_data['rounds_played'], game_data['game_start_patched']),
+        inline=True
     )
 
 def calculate_total_mmr_stats(seasons):
