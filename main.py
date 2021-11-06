@@ -57,7 +57,6 @@ def format_win_lose(result):
 def format_game_kda(kills, deaths, assists):
     return '{} / {} / {}'.format(kills, deaths, assists)
 
-
 def add_game(game_data, embed: Embed, rr_change):
     player = game_data['player']
     player_team = player['team'].lower()
@@ -66,6 +65,22 @@ def add_game(game_data, embed: Embed, rr_change):
         name='**{} | {} | {} | {}**'.format(player['character'], game_data['map'], format_win_lose(won_or_lose_game(player, game_data['blue'])), '{}{}'.format(positive_or_negative(rr_change), rr_change)), 
         value='```yml\nScore: {}\nACS: {:.0f}\nKDA: {}\nAvg Damage/Round: {:.0f}\nRounds: {}\nStart: {}```'.format(format_rounds_win_lose(game_data[player_team]), calculate_game_acs(player_stats['score'], game_data['rounds_played']), format_game_kda(player_stats['kills'], player_stats['deaths'], player_stats['assists']), player['damage_made'] / game_data['rounds_played'], game_data['rounds_played'], game_data['game_start_patched'])
     )
+
+def calculate_total_mmr_stats(seasons):
+    wins = 0
+    losses = 0
+    games = 0
+
+    for key, season in seasons.items():
+        wins += season['wins']
+        losses += (season['number_of_games'] - season['wins'])
+        games += season['number_of_games']
+    
+    return {
+        'wins': wins,
+        'losses': losses,
+        'games': games
+    }
 
 valorant_name_regex = '^.+#.+$'
 
@@ -126,8 +141,18 @@ async def mmr(ctx, *args):
 
     for key in seasons:
         add_act(key.upper(), seasons[key], profile_embed)
+
+
+    total_stats_embed = Embed(title='', color=0xF24D4E)
+    total_data = calculate_total_mmr_stats(seasons)
+
+    total_stats_embed.add_field(name='Ranked Total Wins', value='```diff\n+ {}```'.format(total_data['wins']), inline=True)
+    total_stats_embed.add_field(name='Ranked Total Losses', value='```diff\n- {}```'.format(total_data['losses']), inline=True)
+    total_stats_embed.add_field(name='Ranked Winrate', value='```fix\n{:.2f}%```'.format((total_data['wins'] / total_data['games']) * 100), inline=True)
+    
     
     await ctx.send(embed=profile_embed)
+    await ctx.send(embed=total_stats_embed)
 
 @commands.cooldown(1, 20, commands.BucketType.user)
 @bot.command('competitive')
@@ -165,7 +190,25 @@ async def comp_match_history(ctx, *args):
         add_game(match, comp_embed, rr_changes[i])
         i += 1
     
+    
+
+    mmr = api.get_mmr(profile_data['region'], name_tag[0], name_tag[1])
+
+    if (not mmr):
+        return await ctx.reply('An error has occurred.')
+
+    mmr_data = mmr['data']
+    seasons = mmr_data['by_season']
+
+    total_stats_embed = Embed(title='', color=0x42f5b0)
+    total_data = calculate_total_mmr_stats(seasons)
+
+    total_stats_embed.add_field(name='Ranked Total Wins', value='```diff\n+ {}```'.format(total_data['wins']), inline=True)
+    total_stats_embed.add_field(name='Ranked Total Losses', value='```diff\n- {}```'.format(total_data['losses']), inline=True)
+    total_stats_embed.add_field(name='Ranked Winrate', value='```fix\n{:.2f}%```'.format((total_data['wins'] / total_data['games']) * 100), inline=True)
+    
     await ctx.send(embed=comp_embed)
+    await ctx.send(embed=total_stats_embed)
 
 @commands.cooldown(1, 20, commands.BucketType.user)
 @bot.command()
@@ -194,6 +237,9 @@ async def profile(ctx, *args):
 
     mmr = api.get_mmr(profile_data['region'], name_tag[0], name_tag[1])
 
+    if (not mmr):
+        return await ctx.reply('An error has occurred.')
+
     mmr_data = mmr['data']
     current_data = mmr_data['current_data']
     current_rating = current_data['ranking_in_tier']
@@ -206,6 +252,12 @@ async def profile(ctx, *args):
     profile_embed.add_field(name='Current RR', value='```yml\n{}```'.format(current_rating), inline=True)
     profile_embed.add_field(name='Latest Game', value='```diff\n{}{}```'.format(positive_or_negative(last_game_rating_change), last_game_rating_change), inline=True)   
 
+    total_data = calculate_total_mmr_stats(seasons)
+
+    profile_embed.add_field(name='Ranked Total Wins', value='```diff\n+ {}```'.format(total_data['wins']), inline=True)
+    profile_embed.add_field(name='Ranked Total Losses', value='```diff\n- {}```'.format(total_data['losses']), inline=True)
+    profile_embed.add_field(name='Ranked Winrate', value='```fix\n{:.2f}%```'.format((total_data['wins'] / total_data['games']) * 100), inline=True)
+
     i = 0
     for key in seasons:
         i += 1
@@ -216,12 +268,12 @@ async def profile(ctx, *args):
     await ctx.send(embed=profile_embed)
 
 
-# @bot.event
-# async def on_command_error(ctx, error):
-#     print(error)
-#     if isinstance(error, commands.CommandOnCooldown):
-#         embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
-#         await ctx.send(embed=embed)
+@bot.event
+async def on_command_error(ctx, error):
+    print(error)
+    if isinstance(error, commands.CommandOnCooldown):
+        embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
+        await ctx.send(embed=embed)
 
 @bot.event
 async def on_ready():
