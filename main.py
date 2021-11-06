@@ -1,10 +1,10 @@
 from nextcord.embeds import Embed
+from nextcord.activity import ActivityType, Activity
 from nextcord.ext import commands
 from yaml import load as load_yaml, Loader
 from math import floor
 from re import search
 from random import randint
-from datetime import datetime
 import api
 
 def load_config():
@@ -279,5 +279,6 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_ready():
     print('Ready!')
+    await bot.change_presence(activity=Activity(type=ActivityType.listening, name='{}help'.format(config['prefix'])))
 
 bot.run(config['token'])
