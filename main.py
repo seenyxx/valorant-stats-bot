@@ -94,7 +94,7 @@ async def ping(ctx):
     await ctx.reply('Pong! `{}ms`'.format(floor(bot.latency * 1000)))
 
 @commands.cooldown(1, 15, commands.BucketType.user)
-@bot.command(name='store')
+@bot.command(name='store', aliases=['bundle'])
 async def val_store(ctx):
     bundle = api.get_store_bundle()
     
@@ -109,7 +109,7 @@ async def val_store(ctx):
     await ctx.send(embed=bundle_embed)
 
 @commands.cooldown(1, 15, commands.BucketType.user)
-@bot.command(name='rank-history')
+@bot.command(name='rank-history', aliases=['episodes', 'acts'])
 async def mmr(ctx, *args):
     profile_text = ' '.join(args)
     await ctx.reply('Fetching Rank history for `{}` ...'.format(profile_text))
@@ -155,7 +155,7 @@ async def mmr(ctx, *args):
     await ctx.send(embed=total_stats_embed)
 
 @commands.cooldown(1, 20, commands.BucketType.user)
-@bot.command('competitive')
+@bot.command(name='competitive', aliases=['comp', 'ranked'])
 async def comp_match_history(ctx, *args):
     profile_text = ' '.join(args)
     await ctx.reply('Fetching Competitive data for `{}` ...'.format(profile_text))
@@ -211,7 +211,7 @@ async def comp_match_history(ctx, *args):
     await ctx.send(embed=total_stats_embed)
 
 @commands.cooldown(1, 20, commands.BucketType.user)
-@bot.command()
+@bot.command(name='profile', aliases=['user', 'player'])
 async def profile(ctx, *args):
     profile_text = ' '.join(args)
     await ctx.reply('Fetching Profile `{}` ...'.format(profile_text))
@@ -270,10 +270,11 @@ async def profile(ctx, *args):
 
 @bot.event
 async def on_command_error(ctx, error):
-    print(error)
     if isinstance(error, commands.CommandOnCooldown):
         embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
         await ctx.send(embed=embed)
+    else:
+        print(error)
 
 @bot.event
 async def on_ready():
