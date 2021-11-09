@@ -1,25 +1,28 @@
 import requests
 
+port = '5000'
+host = '127.0.0.1:{}'.format(port)
+
 def get_profile(name, tag):
-    req = requests.get('https://api.henrikdev.xyz/valorant/v1/account/{}/{}'.format(name, tag))
+    req = requests.get('{}/valorant/user?name={}&tag{}'.format(host, name, tag))
     
-    if (not req.status_code == 200):
+    if not req.json()['status'] == 200:
         return False
     else:
         return req.json()
 
 def get_mmr(region, name, tag):
-    req = requests.get('https://api.henrikdev.xyz/valorant/v2/mmr/{}/{}/{}'.format(region, name, tag))
+    req = requests.get('{}/valorant/mmr?region={}&name={}&tag={}'.format(host, region, name, tag))
     
-    if (not req.status_code == 200):
+    if not req.json()['status'] == 200:
         return False
     else:
         return req.json()
 
 def get_store_bundle():
-    req = requests.get('https://api.henrikdev.xyz/valorant/v1/store-featured')
+    req = requests.get('{}/valorant/store-featured'.format(host))
     
-    if (not req.status_code == 200):
+    if not req.json()['status'] == 200:
         return False
     else:
         data = req.json()['data']
@@ -35,9 +38,9 @@ def get_store_bundle():
         return bundle_req.json()
 
 def get_match_history(region, name, tag, puuid, filter):
-    req = requests.get('https://api.henrikdev.xyz/valorant/v3/matches/{}/{}/{}?filter={}&size=10'.format(region, name, tag, filter))
+    req = requests.get('{}/valorant/matches?region={}&name={}&tag={}filter={}&size=10'.format(host, region, name, tag, filter))
 
-    if (not req.status_code == 200):
+    if not req.json()['status'] == 200:
         return False
     else:
         data = req.json()['data']
@@ -67,9 +70,9 @@ def get_match_history(region, name, tag, puuid, filter):
         return games
 
 def get_rr_changes(region, name, tag):
-    req = requests.get('https://api.henrikdev.xyz/valorant/v1/mmr-history/{}/{}/{}'.format(region, name, tag))
+    req = requests.get('{}/valorant/mmr-history?region={}&name={}&tag={}'.format(host, region, name, tag))
 
-    if (not req.status_code == 200):
+    if not req.json()['status'] == 200:
         return False
     else:
         mmr_changes = []

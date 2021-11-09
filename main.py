@@ -20,14 +20,14 @@ def add_act(act_name, data, embed: Embed):
     embed.add_field(name=act_name, value='```yml\nRank: {}\nWins: {}\nGames: {}\nWinrate: {:.1f}%```'.format(data['final_rank_patched'], data['wins'], data['number_of_games'], data['wins'] / data['number_of_games'] * 100))
 
 def positive_or_negative(num):
-    if (num < 0):
+    if num < 0:
         return ''
     else:
         return '+'
 
 def random_display_for_bundle():
     random = randint(1,2)
-    if (random == 1):
+    if random == 1:
         return 'displayIcon'
     else:
         return 'displayIcon2'
@@ -38,9 +38,9 @@ def calculate_game_acs(score, rounds):
 def won_or_lose_game(player, blue):
     team = player['team'].lower()
 
-    if (blue['has_won'] and team == 'blue'):
+    if blue['has_won'] and team == 'blue':
         return True
-    elif (not blue['has_won'] and team == 'red'):
+    elif not blue['has_won'] and team == 'red':
         return True
     else:
         return False
@@ -49,7 +49,7 @@ def format_rounds_win_lose(player_team):
     return '{}-{}'.format(player_team['rounds_won'], player_team['rounds_lost'])
 
 def format_win_lose(result):
-    if (result):
+    if result:
         return 'Win'
     else:
         return 'Lose'
@@ -99,7 +99,7 @@ async def ping(ctx):
 async def val_store(ctx):
     bundle = api.get_store_bundle()
     
-    if (not bundle):
+    if not bundle:
         return await ctx.reply('An error has occurred.')
     
     data = bundle['data']
@@ -115,14 +115,14 @@ async def mmr(ctx, *args):
     profile_text = ' '.join(args)
     await ctx.reply('Fetching Rank history for `{}` ...'.format(profile_text))
 
-    if (not search(valorant_name_regex, profile_text)):
+    if not search(valorant_name_regex, profile_text):
         return await ctx.reply('The valorant profile must be in the format `name#tag`')
 
     name_tag = profile_text.split('#')
 
     profile = api.get_profile(name_tag[0], name_tag[1])
     
-    if (not profile):
+    if not profile:
         return await ctx.reply('An error has occurred.')
     
     profile_data = profile['data']
@@ -130,7 +130,7 @@ async def mmr(ctx, *args):
 
     mmr = api.get_mmr(profile_data['region'], name_tag[0], name_tag[1])
 
-    if (not mmr):
+    if not mmr:
         return await ctx.reply('An error has occurred.')
     
     mmr_data = mmr['data']
@@ -161,13 +161,13 @@ async def comp_match_history(ctx, *args):
     profile_text = ' '.join(args)
     await ctx.reply('Fetching Competitive data for `{}` ...'.format(profile_text))
 
-    if (not search(valorant_name_regex, profile_text)):
+    if not search(valorant_name_regex, profile_text):
         return await ctx.reply('The valorant profile must be in the format `name#tag`')
 
     name_tag = profile_text.split('#')
     profile = api.get_profile(name_tag[0], name_tag[1])
 
-    if (not profile):
+    if not profile:
         return await ctx.reply('An error has occurred.')
     
     profile_data = profile['data']
@@ -175,7 +175,7 @@ async def comp_match_history(ctx, *args):
 
     rr_changes = api.get_rr_changes(profile_data['region'], profile_data['name'], profile_data['tag'])
 
-    if (not rr_changes):
+    if not rr_changes:
         return await ctx.reply('An error has occurred.')
     
     match_history = api.get_match_history(profile_data['region'], profile_data['name'], profile_data['tag'], profile_data['puuid'], 'competitive')
@@ -185,7 +185,7 @@ async def comp_match_history(ctx, *args):
 
     i = 0
     for match in match_history:
-        if (len(rr_changes) - 1 < i):
+        if len(rr_changes) - 1 < i:
             break
 
         add_game(match, comp_embed, rr_changes[i])
@@ -195,7 +195,7 @@ async def comp_match_history(ctx, *args):
 
     mmr = api.get_mmr(profile_data['region'], name_tag[0], name_tag[1])
 
-    if (not mmr):
+    if not mmr:
         return await ctx.reply('An error has occurred.')
 
     mmr_data = mmr['data']
@@ -217,12 +217,12 @@ async def profile(ctx, *args):
     profile_text = ' '.join(args)
     await ctx.reply('Fetching Profile `{}` ...'.format(profile_text))
 
-    if (not search(valorant_name_regex, profile_text)):
+    if not search(valorant_name_regex, profile_text):
         return await ctx.reply('The valorant profile must be in the format `name#tag`')
 
     name_tag = profile_text.split('#')
     profile = api.get_profile(name_tag[0], name_tag[1])
-    if (not profile):
+    if not profile:
         return await ctx.reply('An error has occurred.')
     
     profile_data = profile['data']
@@ -238,7 +238,7 @@ async def profile(ctx, *args):
 
     mmr = api.get_mmr(profile_data['region'], name_tag[0], name_tag[1])
 
-    if (not mmr):
+    if not mmr:
         return await ctx.reply('An error has occurred.')
 
     mmr_data = mmr['data']
@@ -263,7 +263,7 @@ async def profile(ctx, *args):
     for key in seasons:
         i += 1
         add_act(key.upper(), seasons[key], profile_embed)
-        if (i == 2):
+        if i == 2:
             break
 
     await ctx.send(embed=profile_embed)

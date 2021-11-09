@@ -1,5 +1,6 @@
 config.yml
 data.db
+server.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
