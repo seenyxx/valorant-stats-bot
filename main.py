@@ -73,9 +73,10 @@ def calculate_total_mmr_stats(seasons):
     games = 0
 
     for key, season in seasons.items():
-        wins += season['wins']
-        losses += (season['number_of_games'] - season['wins'])
-        games += season['number_of_games']
+        if not 'error' in season:
+            wins += season['wins']
+            losses += (season['number_of_games'] - season['wins'])
+            games += season['number_of_games']
     
     return {
         'wins': wins,
@@ -270,13 +271,13 @@ async def profile(ctx, *args):
     await ctx.send(embed=profile_embed)
 
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandOnCooldown):
-        embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
-        await ctx.send(embed=embed)
-    else:
-        print(error)
+# @bot.event
+# async def on_command_error(ctx, error):
+#     if isinstance(error, commands.CommandOnCooldown):
+#         embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
+#         await ctx.send(embed=embed)
+#     else:
+#         print(error)
 
 @bot.event
 async def on_ready():
