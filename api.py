@@ -1,7 +1,7 @@
 import requests
 
 port = '5000'
-host = 'http://127.0.0.1:{}'.format(port)
+host = 'http://localhost:{}'.format(port)
 
 def get_profile(name, tag):
     req = requests.get('{}/valorant/user?name={}&tag{}'.format(host, name, tag))
