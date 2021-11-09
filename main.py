@@ -223,6 +223,7 @@ async def profile(ctx, *args):
     name_tag = profile_text.split('#')
     profile = api.get_profile(name_tag[0], name_tag[1])
     if not profile:
+        print(profile)
         return await ctx.reply('An error has occurred.')
     
     profile_data = profile['data']

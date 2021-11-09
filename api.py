@@ -5,8 +5,8 @@ host = 'http://localhost:{}'.format(port)
 
 def get_profile(name, tag):
     req = requests.get('{}/valorant/user?name={}&tag={}'.format(host, name, tag))
-    
-    if not req.json()['status'] == 200:
+
+    if not req.json()['status'] == '200':
         return False
     else:
         return req.json()
@@ -14,7 +14,7 @@ def get_profile(name, tag):
 def get_mmr(region, name, tag):
     req = requests.get('{}/valorant/mmr?region={}&name={}&tag={}'.format(host, region, name, tag))
     
-    if not req.json()['status'] == 200:
+    if not req.json()['status'] == '200':
         return False
     else:
         return req.json()
@@ -22,7 +22,7 @@ def get_mmr(region, name, tag):
 def get_store_bundle():
     req = requests.get('{}/valorant/store-featured'.format(host))
     
-    if not req.json()['status'] == 200:
+    if not req.json()['status'] == '200':
         return False
     else:
         data = req.json()['data']
@@ -40,7 +40,7 @@ def get_store_bundle():
 def get_match_history(region, name, tag, puuid, filter):
     req = requests.get('{}/valorant/matches?region={}&name={}&tag={}filter={}&size=10'.format(host, region, name, tag, filter))
 
-    if not req.json()['status'] == 200:
+    if not req.json()['status'] == '200':
         return False
     else:
         data = req.json()['data']
@@ -72,7 +72,7 @@ def get_match_history(region, name, tag, puuid, filter):
 def get_rr_changes(region, name, tag):
     req = requests.get('{}/valorant/mmr-history?region={}&name={}&tag={}'.format(host, region, name, tag))
 
-    if not req.json()['status'] == 200:
+    if not req.json()['status'] == '200':
         return False
     else:
         mmr_changes = []
