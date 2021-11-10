@@ -4,6 +4,7 @@ import pickledb
 import requests
 
 app = Flask(__name__)
+app.config['JSON_SORT_KEYS'] = False
 
 db = pickledb.load('server.db', True)
 
