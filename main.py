@@ -17,7 +17,7 @@ def add_empty_field(embed):
     embed.add_field(name='\u200b', value='\u200b', inline=True)
 
 def add_act(act_name, data, embed: Embed):
-    embed.add_field(name=act_name, value='```yml\nRank: {}\nWins: {}\nGames: {}\nWinrate: {:.1f}%```'.format(data['final_rank_patched'], data['wins'], data['number_of_games'], data['wins'] / data['number_of_games'] * 100))
+    embed.add_field(name=act_name, value='```yml\nRank: {}\nWins: {}\nGames: {}\nWinrate: {:.1f}%```'.format(data['final_rank_patched'] if 'final_rank_patched' in data else 'Unranked', data['wins'] if 'wins' in data else 0, data['number_of_games'] if 'number_of_games' in data else 0, data['wins'] / data['number_of_games'] * 100 if 'number_of_games' in data else 0))
 
 def positive_or_negative(num):
     if num < 0:
@@ -59,6 +59,10 @@ def format_game_kda(kills, deaths, assists):
 
 def add_game(game_data, embed: Embed, rr_change):
     player = game_data['player']
+
+    if not 'player' in game_data:
+        return
+
     player_team = player['team'].lower()
     player_stats = player['stats']
     embed.add_field(
@@ -271,13 +275,13 @@ async def profile(ctx, *args):
     await ctx.send(embed=profile_embed)
 
 
-# @bot.event
-# async def on_command_error(ctx, error):
-#     if isinstance(error, commands.CommandOnCooldown):
-#         embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
-#         await ctx.send(embed=embed)
-#     else:
-#         print(error)
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        embed = Embed(title='You cannot use this command yet! ⌚',description='Try again in **{:.2f} seconds**'.format(error.retry_after), color=0x001b3b)
+        await ctx.send(embed=embed)
+    else:
+        print(error)
 
 @bot.event
 async def on_ready():

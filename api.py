@@ -38,7 +38,7 @@ def get_store_bundle():
         return bundle_req.json()
 
 def get_match_history(region, name, tag, puuid, filter):
-    req = requests.get('{}/valorant/matches?region={}&name={}&tag={}filter={}&size=10'.format(host, region, name, tag, filter))
+    req = requests.get('{}/valorant/matches?region={}&name={}&tag={}&filter={}&size=10'.format(host, region, name, tag, filter))
 
     if not req.json()['status'] == '200':
         return False
